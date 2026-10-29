@@ -1,0 +1,46 @@
+<mvc:View controllerName="zgr.controls.controller.Summary"
+  xmlns:mvc="sap.ui.core.mvc" xmlns="sap.m" displayBlock="true">
+  <Page id="page" title="{i18n>summaryTitle}" showNavButton="true" navButtonPress=".onNavBack"
+    busy="{view>/busy}" busyIndicatorDelay="0">
+    <content>
+      <VBox class="sapUiSmallMargin">
+
+        <Panel headerText="{i18n>secContext}" class="sapUiResponsiveContentPadding sapUiSmallMarginBottom">
+          <VBox>
+            <Text text="{view>/ctx1}" />
+            <Text text="{view>/ctx2}" />
+          </VBox>
+        </Panel>
+
+        <Panel headerText="{view>/itemsHeader}" class="sapUiResponsiveContentPadding sapUiSmallMarginBottom">
+          <VBox>
+            <List items="{view>/items}" showSeparators="Inner">
+              <StandardListItem title="{view>title}" description="{view>description}"
+                info="{view>info}" infoState="{view>state}" />
+            </List>
+            <ProgressIndicator class="sapUiSmallMarginTop" percentValue="{view>/percent}"
+              displayValue="{view>/display}" showValue="true" width="100%" state="{view>/progressState}" />
+            <MessageStrip class="sapUiTinyMarginTop" showIcon="true" type="Warning"
+              visible="{= !!${view>/qtyNote}}" text="{view>/qtyNote}" />
+          </VBox>
+        </Panel>
+
+        <Panel headerText="{i18n>secChecklist}" class="sapUiResponsiveContentPadding sapUiSmallMarginBottom">
+          <Text text="{view>/checklistText}" />
+        </Panel>
+
+        <Panel headerText="{i18n>secDeviations}" class="sapUiResponsiveContentPadding sapUiSmallMarginBottom">
+          <Text text="{view>/deviationText}" />
+        </Panel>
+
+        <CheckBox text="{i18n>closeBatch}" selected="{session>/closeBatch}" />
+      </VBox>
+    </content>
+    <footer>
+      <Toolbar>
+        <Button text="{i18n>submitControl}" type="Emphasized" width="100%"
+          class="zgrFooterButton" press=".onSubmit" enabled="{= !${view>/busy}}" />
+      </Toolbar>
+    </footer>
+  </Page>
+</mvc:View>

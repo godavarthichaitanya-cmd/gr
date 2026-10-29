@@ -1,0 +1,231 @@
+<mvc:View controllerName="zgr.controls.controller.Inspect"
+  xmlns:mvc="sap.ui.core.mvc" xmlns="sap.m" xmlns:core="sap.ui.core" xmlns:ndc="sap.ndc"
+  displayBlock="true">
+  <Page id="page" showNavButton="true" navButtonPress=".onNavBack"
+    busy="{view>/busy}" busyIndicatorDelay="0"
+    title="{= ${session>/mode} === 'GI' ? ${i18n>titleGI} : ${i18n>titleGR}}">
+    <subHeader>
+      <Toolbar>
+        <Text maxLines="1"
+          text="{parts: ['i18n>ctxHeader', 'session>/truck', 'session>/seal', 'session>/warehouse'], formatter: '.formatText'}" />
+        <ToolbarSpacer />
+        <ObjectStatus inverted="true" state="Success"
+          text="{parts: ['i18n>scannedCount', 'view>/scanCount'], formatter: '.formatText'}" />
+      </Toolbar>
+    </subHeader>
+
+    <content>
+      <!-- ============ PANEL 1: Scan label & verify ============ -->
+      <Panel id="panel1" expandable="true" expanded="{view>/p1Expanded}"
+        class="sapUiResponsiveMargin zgrPanel" width="auto">
+        <headerToolbar>
+          <Toolbar>
+            <Title text="{i18n>panelScan}" />
+            <ToolbarSpacer />
+            <ObjectStatus inverted="true" text="{path: 'view>/p1Status', formatter: '.formatStatusText'}"
+              state="{path: 'view>/p1Status', formatter: '.formatter.panelState'}" />
+          </Toolbar>
+        </headerToolbar>
+        <content>
+          <HBox alignItems="Start" class="sapUiTinyMarginBottom">
+            <VBox class="zgrPhotoBox" justifyContent="Center" alignItems="Center">
+              <Image src="{session>/photo}" visible="{= !!${session>/photo}}"
+                width="7rem" height="7rem" class="zgrThumb" densityAware="false" />
+              <core:Icon src="sap-icon://camera" size="2rem" visible="{= !${session>/photo}}" />
+            </VBox>
+            <VBox class="sapUiTinyMarginBegin">
+              <layoutData><FlexItemData growFactor="1" /></layoutData>
+              <Button text="{i18n>captureRetake}" icon="sap-icon://camera" width="100%" press=".onCapture" />
+              <Label text="{i18n>inboundDelivery}" required="true" class="sapUiTinyMarginTop" />
+              <HBox renderType="Bare" alignItems="Center">
+                <Input id="deliveryInput" value="{session>/delivery}"
+                  placeholder="{i18n>deliveryPlaceholder}" liveChange=".onInputLiveChange"
+                  valueStateText="{i18n>requiredField}">
+                  <layoutData><FlexItemData growFactor="1" /></layoutData>
+                </Input>
+                <ndc:BarcodeScannerButton scanSuccess=".onScanSuccess" scanFail=".onScanFail"
+                  dialogTitle="{i18n>scanBarcode}" class="sapUiTinyMarginBegin">
+                  <ndc:customData><core:CustomData key="field" value="delivery" /></ndc:customData>
+                </ndc:BarcodeScannerButton>
+              </HBox>
+            </VBox>
+          </HBox>
+
+          <MessageStrip text="{i18n>noLabelYet}" visible="{= ${session>/ocr}.length === 0 }"
+            type="Information" showIcon="true" class="sapUiSmallMarginBottom" />
+
+          <!-- OCR fields: full width and half width (Quantity | Units, Carton/Pallet | Pcs) -->
+          <FlexBox wrap="Wrap" justifyContent="SpaceBetween" items="{session>/ocr}">
+            <VBox class="sapUiTinyMarginBottom">
+              <layoutData>
+                <FlexItemData growFactor="0" shrinkFactor="0"
+                  baseSize="{= ${session>half} ? '48%' : '100%'}" />
+              </layoutData>
+              <HBox justifyContent="SpaceBetween" alignItems="Center">
+                <Label text="{session>label}" />
+                <ObjectStatus inverted="true"
+                  visible="{= !${session>half} || ${session>confidence} &lt; 0.85 }"
+                  text="{path: 'session>confidence', formatter: '.confidenceText'}"
+                  state="{path: 'session>confidence', formatter: '.formatter.confidenceState'}" />
+              </HBox>
+              <Input value="{session>value}" change=".onFieldChange"
+                type="{= ${session>numeric} ? 'Number' : 'Text'}"
+                valueState="{= ${session>corrected} ? 'Information' : 'None'}"
+                valueStateText="{parts: ['i18n>correctedFrom', 'session>original'], formatter: '.formatText'}" />
+            </VBox>
+          </FlexBox>
+
+          <!-- Good / Bad : Bad activates the checklist panel -->
+          <HBox justifyContent="SpaceBetween" class="sapUiSmallMarginTop">
+            <Button text="{i18n>good}" icon="sap-icon://sys-enter-2" width="48%"
+              type="{= ${view>/condition} === 'Good' ? 'Accept' : 'Default'}" press=".onCondition">
+              <customData><core:CustomData key="value" value="Good" /></customData>
+            </Button>
+            <Button text="{i18n>bad}" icon="sap-icon://error" width="48%"
+              type="{= ${view>/condition} === 'Bad' ? 'Reject' : 'Default'}" press=".onCondition">
+              <customData><core:CustomData key="value" value="Bad" /></customData>
+            </Button>
+          </HBox>
+
+          <!-- Device temperature sensor serial number -->
+          <Label text="{i18n>sensorSerial}" class="sapUiSmallMarginTop" />
+          <HBox renderType="Bare" alignItems="Center">
+            <Input id="sensorInput" value="{session>/sensor}" editable="{= !${view>/sensorLocked}}">
+              <layoutData><FlexItemData growFactor="1" /></layoutData>
+            </Input>
+            <ndc:BarcodeScannerButton scanSuccess=".onScanSuccess" scanFail=".onScanFail"
+              dialogTitle="{i18n>scanBarcode}" class="sapUiTinyMarginBegin">
+              <ndc:customData><core:CustomData key="field" value="sensor" /></ndc:customData>
+            </ndc:BarcodeScannerButton>
+            <Button icon="sap-icon://edit" type="Transparent" tooltip="{i18n>editManually}"
+              enabled="{view>/sensorLocked}" press=".onEditSensor" />
+          </HBox>
+
+          <Button text="{i18n>confirmValidate}" type="Emphasized" width="100%"
+            class="sapUiSmallMarginTop zgrFooterButton" press=".onConfirm" />
+
+          <!-- Validation result -->
+          <VBox visible="{view>/showValidation}" class="sapUiSmallMarginTop">
+            <List items="{session>/validation/checks}" showSeparators="Inner">
+              <StandardListItem title="{session>label}" description="{session>detail}"
+                info="{session>text}" infoState="{session>state}" />
+            </List>
+            <Label class="sapUiSmallMarginTop"
+              text="{parts: ['i18n>aggregation', 'session>/validation/display'], formatter: '.formatText'}" />
+            <ProgressIndicator percentValue="{session>/validation/percent}"
+              displayValue="{session>/validation/display}" showValue="true" width="100%"
+              state="{= ${session>/validation/hasError} ? 'Error' : (${session>/validation/hasWarning} ? 'Warning' : 'Success')}" />
+            <MessageStrip class="sapUiTinyMarginTop" showIcon="true"
+              type="{= ${session>/validation/hasError} ? 'Error' : (${session>/validation/hasWarning} ? 'Warning' : 'Success')}"
+              text="{= ${session>/validation/hasError} ? ${i18n>valError} : (${session>/validation/hasWarning} ? ${i18n>valWarn} : ${i18n>valOk})}" />
+          </VBox>
+        </content>
+      </Panel>
+
+      <!-- ============ PANEL 2: Checklist (active only if BAD) ============ -->
+      <Panel id="panel2" expandable="{view>/p2Active}" expanded="{view>/p2Expanded}"
+        class="sapUiResponsiveMargin zgrPanel" width="auto">
+        <headerToolbar>
+          <Toolbar>
+            <Title text="{i18n>panelChecklist}" />
+            <ToolbarSpacer />
+            <ObjectStatus inverted="true" text="{path: 'view>/p2Status', formatter: '.formatStatusText'}"
+              state="{path: 'view>/p2Status', formatter: '.formatter.panelState'}" />
+          </Toolbar>
+        </headerToolbar>
+        <content>
+          <VBox visible="{view>/p2Active}">
+            <ProgressIndicator percentValue="{session>/checklist/percent}"
+              displayValue="{session>/checklist/display}" showValue="true" state="Information" width="100%" />
+            <ObjectStatus title="{i18n>entity}" text="{view>/entity}" class="sapUiSmallMarginTopBottom" />
+
+            <VBox items="{session>/checklist/questions}">
+              <VBox visible="{session>visible}" class="sapUiSmallMarginBottom">
+                <Label text="{session>text}" required="{session>mandatory}" />
+
+                <SegmentedButton visible="{= ${session>type} === 'YesNo'}" selectedKey="{session>answer}"
+                  selectionChange=".onChoice" width="100%">
+                  <items>
+                    <SegmentedButtonItem key="Yes" text="{i18n>yes}" />
+                    <SegmentedButtonItem key="No" text="{i18n>no}" />
+                  </items>
+                </SegmentedButton>
+
+                <SegmentedButton visible="{= ${session>type} === 'OnOff'}" selectedKey="{session>answer}"
+                  selectionChange=".onChoice" width="100%">
+                  <items>
+                    <SegmentedButtonItem key="On" text="{i18n>on}" />
+                    <SegmentedButtonItem key="Off" text="{i18n>off}" />
+                  </items>
+                </SegmentedButton>
+
+                <TextArea visible="{= ${session>type} === 'Text'}" value="{session>answer}"
+                  rows="3" width="100%" change=".onTextChange" />
+
+                <ObjectStatus text="{i18n>required}" state="Error" visible="{session>error}" />
+              </VBox>
+            </VBox>
+
+            <HBox justifyContent="SpaceBetween" class="sapUiSmallMarginTop">
+              <Button text="{i18n>back}" width="35%" class="zgrFooterButton" press=".onChecklistBack" />
+              <Button text="{i18n>nextStep}" type="Emphasized" width="62%"
+                class="zgrFooterButton" press=".onChecklistNext" />
+            </HBox>
+          </VBox>
+        </content>
+      </Panel>
+
+      <!-- ============ PANEL 3: Deviation capture ============ -->
+      <Panel id="panel3" expandable="{view>/p3Active}" expanded="{view>/p3Expanded}"
+        class="sapUiResponsiveMargin zgrPanel" width="auto">
+        <headerToolbar>
+          <Toolbar>
+            <Title text="{i18n>panelDeviation}" />
+            <ToolbarSpacer />
+            <ObjectStatus inverted="true" text="{path: 'view>/p3Status', formatter: '.formatStatusText'}"
+              state="{path: 'view>/p3Status', formatter: '.formatter.panelState'}" />
+          </Toolbar>
+        </headerToolbar>
+        <content>
+          <VBox visible="{view>/p3Active}">
+            <MessageStrip text="{view>/reasonText}" visible="{= !!${view>/reasonText}}"
+              type="Warning" showIcon="true" class="sapUiSmallMarginBottom" />
+
+            <Label text="{i18n>deviationType}" required="true" />
+            <Select id="typeSelect" width="100%" forceSelection="false"
+              selectedKey="{session>/deviationDraft/type}" items="{view>/deviationTypes}"
+              change=".onClearState">
+              <core:Item key="{view>key}" text="{view>text}" />
+            </Select>
+
+            <Label text="{i18n>justification}" required="true" class="sapUiSmallMarginTop" />
+            <TextArea id="justification" value="{session>/deviationDraft/justification}" rows="4"
+              width="100%" maxLength="500" showExceededText="true"
+              placeholder="{i18n>justificationPlaceholder}" liveChange=".onClearState" />
+
+            <HBox justifyContent="SpaceBetween" alignItems="Center" class="sapUiSmallMarginTop">
+              <Label text="{i18n>evidencePhotos}" />
+              <Button text="{i18n>addPhoto}" icon="sap-icon://camera" press=".onAddPhoto" />
+            </HBox>
+            <FlexBox wrap="Wrap" items="{session>/deviationDraft/photos}">
+              <VBox alignItems="Center" class="sapUiTinyMargin">
+                <Image src="{session>src}" width="6rem" height="6rem" class="zgrThumb" densityAware="false" />
+                <Button icon="sap-icon://decline" type="Transparent" press=".onRemovePhoto" />
+              </VBox>
+            </FlexBox>
+
+            <Button text="{i18n>saveDeviation}" type="Emphasized" width="100%"
+              class="sapUiSmallMarginTop zgrFooterButton" press=".onSaveDeviation" />
+          </VBox>
+        </content>
+      </Panel>
+    </content>
+
+    <footer>
+      <Toolbar>
+        <Button text="{i18n>reviewSubmit}" type="Emphasized" width="100%" class="zgrFooterButton"
+          enabled="{= ${view>/scanCount} > 0 }" press=".onReview" />
+      </Toolbar>
+    </footer>
+  </Page>
+</mvc:View>

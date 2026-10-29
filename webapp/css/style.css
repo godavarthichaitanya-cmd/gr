@@ -1,0 +1,4 @@
+.zgrFooterButton { min-height: 3rem; }
+.zgrPhotoBox { width: 7rem; height: 7rem; background: #e6edf3; border-radius: .5rem; flex-shrink: 0; }
+.zgrThumb { object-fit: cover; border-radius: .5rem; }
+.zgrPanel .sapMPanelHdr { min-height: 3rem; }

@@ -1,0 +1,69 @@
+<mvc:View controllerName="zgr.controls.controller.OpenControl"
+  xmlns:mvc="sap.ui.core.mvc" xmlns="sap.m" xmlns:core="sap.ui.core"
+  xmlns:f="sap.ui.layout.form" xmlns:ndc="sap.ndc" displayBlock="true">
+  <Page id="page"
+    title="{= ${session>/mode} === 'GI' ? ${i18n>titleGI} : ${i18n>titleGR}}">
+    <content>
+      <!-- GI / GR selector -->
+      <RadioButtonGroup columns="2" class="sapUiSmallMarginBeginEnd sapUiTinyMarginTop"
+        selectedIndex="{= ${session>/mode} === 'GR' ? 1 : 0}" select=".onModeSelect">
+        <buttons>
+          <RadioButton text="{i18n>modeGI}" />
+          <RadioButton text="{i18n>modeGR}" />
+        </buttons>
+      </RadioButtonGroup>
+
+      <f:SimpleForm editable="true" layout="ResponsiveGridLayout"
+        labelSpanXL="12" labelSpanL="12" labelSpanM="12" labelSpanS="12"
+        emptySpanXL="0" emptySpanL="0" emptySpanM="0" emptySpanS="0"
+        columnsXL="1" columnsL="1" columnsM="1">
+        <f:content>
+
+          <!-- Truck No: value help + edit pencil -->
+          <Label text="{i18n>truckNo}" required="true" />
+          <HBox renderType="Bare" alignItems="Center">
+            <Input id="truckInput" value="{session>/truck}"
+              editable="{= !${view>/truckLocked}}"
+              showValueHelp="true" valueHelpRequest=".onTruckValueHelp"
+              change=".onTruckChange" liveChange=".onInputLiveChange"
+              valueStateText="{i18n>requiredField}">
+              <layoutData><FlexItemData growFactor="1" /></layoutData>
+            </Input>
+            <Button icon="sap-icon://edit" type="Transparent" tooltip="{i18n>editManually}"
+              enabled="{view>/truckLocked}" press=".onEditTruck" class="sapUiTinyMarginBegin" />
+          </HBox>
+
+          <!-- Truck Seal: barcode scan -->
+          <Label text="{i18n>truckSeal}" required="true" />
+          <HBox renderType="Bare" alignItems="Center">
+            <Input id="sealInput" value="{session>/seal}" liveChange=".onInputLiveChange"
+              valueStateText="{i18n>requiredField}">
+              <layoutData><FlexItemData growFactor="1" /></layoutData>
+            </Input>
+            <ndc:BarcodeScannerButton scanSuccess=".onScanSuccess" scanFail=".onScanFail"
+              dialogTitle="{i18n>scanBarcode}" class="sapUiTinyMarginBegin" />
+          </HBox>
+
+          <!-- Warehouse Number -->
+          <Label text="{i18n>warehouseNo}" required="true" />
+          <Input id="warehouseInput" value="{session>/warehouse}" liveChange=".onInputLiveChange"
+            valueStateText="{i18n>requiredField}" />
+
+          <!-- Language: E = English, S = Slovenian -->
+          <Label text="{i18n>language}" />
+          <Select id="languageSelect" selectedKey="{session>/language}" width="100%"
+            change=".onLanguageChange">
+            <core:Item key="E" text="E – English" />
+            <core:Item key="S" text="S – Slovenščina" />
+          </Select>
+        </f:content>
+      </f:SimpleForm>
+    </content>
+    <footer>
+      <Toolbar>
+        <Button text="{i18n>continue}" type="Emphasized" width="100%"
+          class="zgrFooterButton" press=".onContinue" />
+      </Toolbar>
+    </footer>
+  </Page>
+</mvc:View>

@@ -1,0 +1,30 @@
+{
+  "trucks": [
+    { "truck": "MB-482-KX", "type": "GI" },
+    { "truck": "GO-119-TT", "type": "GI" },
+    { "truck": "RT-310-ZZ", "type": "GR" },
+    { "truck": "HK-208-QP", "type": "GR" }
+  ],
+  "deliveries": {
+    "80001234": { "po": "4500012345", "product": "Folding Boxes CORIXIL 160/12.5mg - IT", "batch": "B2291X", "quantity": 60, "uom": "EA", "tolerancePct": 5, "pallets": 3 },
+    "80001235": { "po": "4500012399", "product": "Folding Boxes CORIXIL 160/12.5mg - IT", "batch": "B2305Q", "quantity": 120, "uom": "EA", "tolerancePct": 5, "pallets": 6 }
+  },
+  "deviationTypes": [
+    { "key": "DAMAGED", "textKey": "devDamaged", "signature": true },
+    { "key": "QTY", "textKey": "devQty", "signature": false },
+    { "key": "LABEL", "textKey": "devLabel", "signature": false },
+    { "key": "TEMP", "textKey": "devTemp", "signature": true },
+    { "key": "SEAL", "textKey": "devSeal", "signature": true },
+    { "key": "OTHER", "textKey": "devOther", "signature": false }
+  ],
+  "checklistConfig": [
+    { "id": "pack", "textKey": "q_pack", "type": "YesNo", "mandatory": true, "deviationOn": "No", "deviationType": "DAMAGED" },
+    { "id": "label", "textKey": "q_label", "type": "YesNo", "mandatory": true, "deviationOn": "No", "deviationType": "LABEL" },
+    { "id": "labelDesc", "textKey": "q_labelDesc", "type": "Text", "mandatory": true, "parent": "label", "condition": "No" },
+    { "id": "seal", "textKey": "q_seal", "type": "YesNo", "mandatory": true, "deviationOn": "No", "deviationType": "SEAL" },
+    { "id": "stable", "textKey": "q_stable", "type": "YesNo", "mandatory": true, "deviationOn": "No", "deviationType": "DAMAGED" },
+    { "id": "qtyNote", "textKey": "q_qtyNote", "type": "YesNo", "mandatory": true, "deviationOn": "No", "deviationType": "QTY" },
+    { "id": "temp", "textKey": "q_temp", "type": "OnOff", "mandatory": false, "deviationOn": "Off", "deviationType": "TEMP" },
+    { "id": "comment", "textKey": "q_comment", "type": "Text", "mandatory": false }
+  ]
+}

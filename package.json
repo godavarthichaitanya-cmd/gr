@@ -1,0 +1,9 @@
+{
+  "name": "zgr-controls",
+  "version": "0.0.1",
+  "scripts": {
+    "start": "ui5 serve -o index.html",
+    "start:https": "ui5 serve --h2 -o index.html"
+  },
+  "devDependencies": { "@ui5/cli": "^4.0.0" }
+}
